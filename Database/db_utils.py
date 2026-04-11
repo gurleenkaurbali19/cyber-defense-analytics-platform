@@ -62,3 +62,80 @@ def update_processing_status(upload_id, status):
     conn.commit()
 
     conn.close()
+
+
+#Funtion to insert the computed KPIs in the KPI table
+def insert_kpis(upload_id, kpis):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+    INSERT INTO kpi_master (
+        upload_id, tool_name, kpi_name, kpi_value,
+        kpi_dimension, dimension_value, start_date, end_date
+    )
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    """
+
+    for kpi in kpis:
+        cursor.execute(query, (
+            upload_id,
+            kpi["tool_name"],
+            kpi["kpi_name"],
+            kpi["kpi_value"],
+            kpi["kpi_dimension"],
+            kpi["dimension_value"],
+            kpi["start_date"],
+            kpi["end_date"]
+        ))
+
+    conn.commit()
+    conn.close()
+
+def get_upload_ids_by_tool(tool_name):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT upload_id FROM upload_master WHERE tool_name = %s"
+    cursor.execute(query, (tool_name,))
+
+    results = cursor.fetchall()
+    conn.close()
+
+    return [row[0] for row in results]
+
+
+def fetch_raw_falcon(upload_id):
+    import pandas as pd
+
+    conn = get_connection()
+    query = "SELECT * FROM raw_falcon WHERE upload_id = %s"
+
+    df = pd.read_sql(query, conn, params=[upload_id])
+    conn.close()
+
+    return df
+
+def get_processing_status(upload_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = "SELECT processing_status FROM upload_master WHERE upload_id = %s"
+    cursor.execute(query, (upload_id,))
+
+    result = cursor.fetchone()
+    conn.close()
+
+    return result[0] if result else None
+
+
+def fetch_kpis(upload_id):
+    import pandas as pd
+
+    conn = get_connection()
+    query = "SELECT * FROM kpi_master WHERE upload_id = %s"
+
+    df = pd.read_sql(query, conn, params=[upload_id])
+    conn.close()
+
+    return df

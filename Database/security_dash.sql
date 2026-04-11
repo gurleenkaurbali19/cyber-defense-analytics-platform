@@ -67,3 +67,11 @@ CREATE INDEX idx_kpi_tool ON kpi_master(tool_name);
 CREATE INDEX idx_kpi_name ON kpi_master(kpi_name);
 CREATE INDEX idx_kpi_date ON kpi_master(start_date, end_date);
 
+
+
+
+
+#Testing
+Select * from kpi_master;
+SELECT * FROM upload_master;
+SELECT * FROM raw_falcon;
