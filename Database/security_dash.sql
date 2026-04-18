@@ -75,3 +75,6 @@ CREATE INDEX idx_kpi_date ON kpi_master(start_date, end_date);
 Select * from kpi_master;
 SELECT * FROM upload_master;
 SELECT * FROM raw_falcon;
+delete from kpi_master;
+delete from upload_master;
+delete from raw_falcon;

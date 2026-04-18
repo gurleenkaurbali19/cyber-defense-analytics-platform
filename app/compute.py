@@ -8,14 +8,13 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Database.db_utils import (
     get_upload_ids_by_tool,
-    fetch_raw_falcon,
     insert_kpis,
     update_processing_status,
     get_processing_status,
     fetch_kpis
 )
 
-from processing.falcon_kpi import compute_falcon_kpis
+from config.tool_registry import TOOL_REGISTRY
 
 
 def show_compute_kpi():
@@ -26,7 +25,7 @@ def show_compute_kpi():
     # -------------------------------
     tool = st.selectbox(
         "Select Tool",
-        ["FALCON"]
+        list(TOOL_REGISTRY.keys())
     )
 
     # -------------------------------
@@ -60,13 +59,14 @@ def show_compute_kpi():
                 st.subheader("Computed KPIs")
                 st.dataframe(kpi_df)
 
-        return  # Stop further execution
+        return
 
     # -------------------------------
     # Step 4: Preview Raw Data
     # -------------------------------
     if st.button("🔍 Preview Raw Data"):
-        df = fetch_raw_falcon(upload_id)
+        fetch_func = TOOL_REGISTRY[tool]["fetch_raw"]
+        df = fetch_func(upload_id)
 
         if df.empty:
             st.warning("No data found for this upload.")
@@ -82,8 +82,9 @@ def show_compute_kpi():
             # Update status → processing
             update_processing_status(upload_id, "processing")
 
-            # Compute KPIs
-            kpis = compute_falcon_kpis(upload_id)
+            # Call tool-specific KPI function
+            kpi_func = TOOL_REGISTRY[tool]["kpi_func"]
+            kpis = kpi_func(upload_id)
 
             if not kpis:
                 st.warning("No KPI data generated.")
