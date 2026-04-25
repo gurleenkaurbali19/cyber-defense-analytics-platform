@@ -43,6 +43,20 @@ CREATE TABLE raw_falcon (
     FOREIGN KEY (upload_id) REFERENCES upload_master(upload_id)
 );
 
+#------Cyble------
+CREATE TABLE raw_cyble (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    upload_id INT,
+    data_source VARCHAR(50),
+    record_date DATETIME,
+    alert_severity VARCHAR(20),
+    alert_id VARCHAR(100),
+    alert_generated_date DATETIME,
+    alert_status VARCHAR(20),
+    keyword VARCHAR(100)
+);
+
+
 
 # -----------------------------CREATING KPI TABLE--------------------------------------
 CREATE TABLE kpi_master (
@@ -78,3 +92,6 @@ SELECT * FROM raw_falcon;
 delete from kpi_master;
 delete from upload_master;
 delete from raw_falcon;
+delete from raw_cyble;
+select * from raw_cyble;
+select * from kpi_master;

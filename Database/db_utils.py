@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -105,16 +106,15 @@ def get_upload_ids_by_tool(tool_name):
     return [row[0] for row in results]
 
 
-def fetch_raw_falcon(upload_id):
-    import pandas as pd
+# def fetch_raw_falcon(upload_id):
 
-    conn = get_connection()
-    query = "SELECT * FROM raw_falcon WHERE upload_id = %s"
+#     conn = get_connection()
+#     query = "SELECT * FROM raw_falcon WHERE upload_id = %s"
 
-    df = pd.read_sql(query, conn, params=[upload_id])
-    conn.close()
+#     df = pd.read_sql(query, conn, params=[upload_id])
+#     conn.close()
 
-    return df
+#     return df
 
 def get_processing_status(upload_id):
     conn = get_connection()
@@ -130,10 +130,27 @@ def get_processing_status(upload_id):
 
 
 def fetch_kpis(upload_id):
-    import pandas as pd
-
     conn = get_connection()
     query = "SELECT * FROM kpi_master WHERE upload_id = %s"
+
+    df = pd.read_sql(query, conn, params=[upload_id])
+    conn.close()
+
+
+    return df
+# def fetch_raw_cyble(upload_id):
+#     conn = get_connection()
+
+#     query = "SELECT * FROM raw_cyble WHERE upload_id = %s"
+#     df = pd.read_sql(query, conn, params=[upload_id])
+
+#     conn.close()
+#     return df
+
+def fetch_raw_data(upload_id, table_name):
+
+    conn = get_connection()
+    query = f"SELECT * FROM {table_name} WHERE upload_id = %s"
 
     df = pd.read_sql(query, conn, params=[upload_id])
     conn.close()

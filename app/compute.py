@@ -5,7 +5,7 @@ import sys
 
 # Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from Database.db_utils import fetch_raw_data
 from Database.db_utils import (
     get_upload_ids_by_tool,
     insert_kpis,
@@ -65,8 +65,10 @@ def show_compute_kpi():
     # Step 4: Preview Raw Data
     # -------------------------------
     if st.button("🔍 Preview Raw Data"):
-        fetch_func = TOOL_REGISTRY[tool]["fetch_raw"]
-        df = fetch_func(upload_id)
+
+        table_name = TOOL_REGISTRY[tool]["raw_table"]
+        df = fetch_raw_data(upload_id, table_name)
+
 
         if df.empty:
             st.warning("No data found for this upload.")
