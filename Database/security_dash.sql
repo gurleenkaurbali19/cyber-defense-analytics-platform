@@ -56,6 +56,86 @@ CREATE TABLE raw_cyble (
     keyword VARCHAR(100)
 );
 
+#------SIEM-------
+CREATE TABLE raw_siem (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    upload_id INT,
+
+    alert_type VARCHAR(100),
+    severity VARCHAR(50),
+    alert_time DATETIME,
+    validation_status VARCHAR(50),
+
+    ingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (upload_id) REFERENCES upload_master(upload_id)
+);
+
+CREATE INDEX idx_siem_upload ON raw_siem(upload_id);
+
+#---------Trend Vision------
+CREATE TABLE raw_trend_vision (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    upload_id INT,
+
+    detected DATETIME,
+    threat_type VARCHAR(50),
+    security_filter VARCHAR(100),
+    protection_mode VARCHAR(50),
+
+    affected_user VARCHAR(255),
+    sender VARCHAR(255),
+    recipient VARCHAR(255),
+
+    status VARCHAR(50),
+
+    ingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (upload_id) REFERENCES upload_master(upload_id)
+);
+
+CREATE INDEX idx_trend_upload ON raw_trend_vision(upload_id);
+
+#------COM OLHO ------
+CREATE TABLE raw_com_olho (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    upload_id INT,
+
+    submission_date DATETIME,
+    technical_severity VARCHAR(50),
+    status VARCHAR(100),
+    sla_status VARCHAR(50),
+
+    age_of_vulnerability_days INT,
+    vulnerability_type VARCHAR(100),
+    reward_amount FLOAT,
+
+    report_status VARCHAR(50),
+
+    ingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (upload_id) REFERENCES upload_master(upload_id)
+);
+
+CREATE INDEX idx_com_olho_upload ON raw_com_olho(upload_id);
+
+#------Netskope-----
+CREATE TABLE raw_netskope (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    upload_id INT,
+
+    hostname VARCHAR(255),
+    os_platform VARCHAR(50),
+    user VARCHAR(255),
+    internet_security_status VARCHAR(50),
+    last_event VARCHAR(50),
+
+    ingestion_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (upload_id) REFERENCES upload_master(upload_id)
+);
+
+CREATE INDEX idx_netskope_upload ON raw_netskope(upload_id);
 
 
 # -----------------------------CREATING KPI TABLE--------------------------------------
@@ -89,9 +169,8 @@ CREATE INDEX idx_kpi_date ON kpi_master(start_date, end_date);
 Select * from kpi_master;
 SELECT * FROM upload_master;
 SELECT * FROM raw_falcon;
-delete from kpi_master;
-delete from upload_master;
-delete from raw_falcon;
-delete from raw_cyble;
 select * from raw_cyble;
 select * from kpi_master;
+select * from raw_siem;
+select * from raw_trend_vision;
+select * from raw_com_olho;

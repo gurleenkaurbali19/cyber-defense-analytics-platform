@@ -66,15 +66,15 @@ def show_compute_kpi():
     # -------------------------------
     if st.button("🔍 Preview Raw Data"):
 
-        table_name = TOOL_REGISTRY[tool]["raw_table"]
+        table_name = TOOL_REGISTRY[tool]["table_name"]
         df = fetch_raw_data(upload_id, table_name)
-
 
         if df.empty:
             st.warning("No data found for this upload.")
         else:
             st.subheader("Raw Data Preview")
             st.dataframe(df.head(10))
+
 
     # -------------------------------
     # Step 5: Compute KPI
