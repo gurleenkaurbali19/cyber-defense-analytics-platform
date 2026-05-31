@@ -1,115 +1,94 @@
 import streamlit as st
-import pandas as pd
 import os
 import sys
+import time
 
-# Add project root to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from Database.db_utils import fetch_raw_data
+
 from Database.db_utils import (
     get_upload_ids_by_tool,
     insert_kpis,
     update_processing_status,
-    get_processing_status,
     fetch_kpis
 )
-
 from config.tool_registry import TOOL_REGISTRY
 
 
 def show_compute_kpi():
-    st.title("⚙️ Compute KPIs")
+    st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap');
 
-    # -------------------------------
-    # Step 1: Select Tool
-    # -------------------------------
-    tool = st.selectbox(
-        "Select Tool",
-        list(TOOL_REGISTRY.keys())
-    )
+    .pg-title {
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.7rem; font-weight: 700;
+        color: #0F172A; letter-spacing: -0.02em;
+        border-left: 4px solid #7C3AED;
+        padding-left: 14px; margin-bottom: 4px;
+    }
+    .pg-sub {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.88rem; color: #64748B;
+        margin-bottom: 24px; padding-left: 18px;
+    }
+    .kpi-label {
+        font-family: 'Inter', sans-serif;
+        font-size: 0.65rem; font-weight: 700;
+        letter-spacing: 0.12em; text-transform: uppercase;
+        color: #94A3B8; margin: 18px 0 8px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # -------------------------------
-    # Step 2: Fetch Upload IDs
-    # -------------------------------
+    st.markdown('<div class="pg-title">KPI Computation Engine</div>', unsafe_allow_html=True)
+    st.markdown('<div class="pg-sub">Select a tool and an upload ID to compute and store KPIs into kpi_master.</div>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        tool = st.selectbox("Security Tool", list(TOOL_REGISTRY.keys()))
+
     upload_ids = get_upload_ids_by_tool(tool)
 
     if not upload_ids:
-        st.warning("No uploads found for this tool.")
+        st.warning("No uploads found for this tool. Upload data first.")
         return
 
-    upload_id = st.selectbox(
-        "Select Upload ID",
-        upload_ids
-    )
+    with col2:
+        upload_id = st.selectbox("Upload ID", upload_ids)
 
-    # -------------------------------
-    # Step 3: Check KPI Status
-    # -------------------------------
-    status = get_processing_status(upload_id)
+    st.markdown("---")
 
-    if status == "completed":
-        st.success("✅ KPIs already computed for this upload")
+    existing_kpis = fetch_kpis(upload_id)
+    has_kpis = existing_kpis is not None and not existing_kpis.empty
 
-        if st.button("📊 View KPIs"):
-            kpi_df = fetch_kpis(upload_id)
-
-            if kpi_df.empty:
-                st.warning("No KPIs found.")
-            else:
-                st.subheader("Computed KPIs")
-                st.dataframe(kpi_df)
-
+    if has_kpis:
+        st.success("KPIs already computed for this upload. Ready for dashboard.")
+        st.markdown('<div class="kpi-label">Stored KPIs</div>', unsafe_allow_html=True)
+        st.dataframe(existing_kpis, use_container_width=True)
         return
 
-    # -------------------------------
-    # Step 4: Preview Raw Data
-    # -------------------------------
-    if st.button("🔍 Preview Raw Data"):
+    if st.button("Run KPI Engine", type="primary"):
+        progress = st.progress(0, text="Initializing engine...")
+        time.sleep(0.5)
+        progress.progress(20, text="Processing raw logs...")
+        time.sleep(0.7)
+        progress.progress(50, text="Computing KPIs...")
 
-        table_name = TOOL_REGISTRY[tool]["table_name"]
-        df = fetch_raw_data(upload_id, table_name)
+        update_processing_status(upload_id, "processing")
 
-        if df.empty:
-            st.warning("No data found for this upload.")
-        else:
-            st.subheader("Raw Data Preview")
-            st.dataframe(df.head(10))
+        kpi_func = TOOL_REGISTRY[tool]["kpi_func"]
+        kpis = kpi_func(upload_id)
+        insert_kpis(upload_id, kpis)
 
+        time.sleep(0.5)
+        progress.progress(90, text="Saving to kpi_master...")
+        update_processing_status(upload_id, "completed")
+        progress.progress(100, text="Done.")
 
-    # -------------------------------
-    # Step 5: Compute KPI
-    # -------------------------------
-    if st.button("🚀 Compute KPI"):
-        try:
-            # Update status → processing
-            update_processing_status(upload_id, "processing")
+        st.success("KPI computation complete. Head to Dashboard to visualize.")
 
-            # Call tool-specific KPI function
-            kpi_func = TOOL_REGISTRY[tool]["kpi_func"]
-            kpis = kpi_func(upload_id)
-
-            if not kpis:
-                st.warning("No KPI data generated.")
-                update_processing_status(upload_id, "failed")
-                return
-
-            # Insert KPIs into DB
-            insert_kpis(upload_id, kpis)
-
-            # Update status → completed
-            update_processing_status(upload_id, "completed")
-
-            st.success("✅ KPIs computed and stored successfully!")
-
-            # -------------------------------
-            # Step 6: Show Computed KPIs
-            # -------------------------------
-            kpi_df = fetch_kpis(upload_id)
-
-            if not kpi_df.empty:
-                st.subheader("Computed KPIs")
-                st.dataframe(kpi_df)
-
-        except Exception as e:
-            update_processing_status(upload_id, "failed")
-            st.error(f"❌ KPI computation failed: {e}")
+        fresh_kpis = fetch_kpis(upload_id)
+        if fresh_kpis is not None and not fresh_kpis.empty:
+            st.markdown('<div class="kpi-label">Computed KPIs</div>', unsafe_allow_html=True)
+            st.dataframe(fresh_kpis, use_container_width=True)

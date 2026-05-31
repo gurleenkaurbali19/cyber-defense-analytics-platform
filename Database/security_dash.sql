@@ -162,7 +162,9 @@ CREATE INDEX idx_kpi_name ON kpi_master(kpi_name);
 CREATE INDEX idx_kpi_date ON kpi_master(start_date, end_date);
 
 
+Alter table kpi_master ADD UNIQUE KEY unique_upload_kpi (upload_id, kpi_name, kpi_dimension, dimension_value);
 
+SET SQL_SAFE_UPDATES =1;
 
 
 #Testing

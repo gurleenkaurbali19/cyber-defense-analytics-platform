@@ -65,6 +65,23 @@ def update_processing_status(upload_id, status):
     conn.close()
 
 
+def check_kpi_exists(upload_id):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+    SELECT COUNT(*) FROM kpi_master
+    WHERE upload_id = %s
+    """
+
+    cursor.execute(query, (upload_id,))
+    count = cursor.fetchone()[0]
+
+    cursor.close()
+    conn.close()
+
+    return count > 0
+
 #Funtion to insert the computed KPIs in the KPI table
 def insert_kpis(upload_id, kpis):
     conn = get_connection()
