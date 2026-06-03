@@ -165,7 +165,14 @@ CREATE INDEX idx_kpi_date ON kpi_master(start_date, end_date);
 Alter table kpi_master ADD UNIQUE KEY unique_upload_kpi (upload_id, kpi_name, kpi_dimension, dimension_value);
 
 SET SQL_SAFE_UPDATES =1;
-
+Delete from kpi_master;
+delete from raw_falcon;
+delete from raw_cyble;
+delete from raw_com_olho;
+delete from raw_siem;
+delete from raw_netskope;
+delete from raw_trend_vision;
+delete from upload_master;
 
 #Testing
 Select * from kpi_master;
