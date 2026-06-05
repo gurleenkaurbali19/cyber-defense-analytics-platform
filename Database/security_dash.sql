@@ -15,8 +15,7 @@ CREATE TABLE upload_master (
 
 # For speeding duplicate checks:
 CREATE INDEX idx_file_hash ON upload_master(file_hash);
-# For speeding up querying per uplaod:
-CREATE INDEX idx_falcon_upload ON raw_falcon(upload_id);
+
 
 
 #------------------------CREATING RAW TABLES---------------------
@@ -42,6 +41,9 @@ CREATE TABLE raw_falcon (
 
     FOREIGN KEY (upload_id) REFERENCES upload_master(upload_id)
 );
+
+# For speeding up querying per uplaod:
+CREATE INDEX idx_falcon_upload ON raw_falcon(upload_id);
 
 #------Cyble------
 CREATE TABLE raw_cyble (
