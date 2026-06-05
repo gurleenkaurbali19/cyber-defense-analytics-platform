@@ -4,19 +4,18 @@ import os
 
 def get_connection():
     try:
-        # Check if running on Streamlit Cloud (secrets exist)
-        try:
-            import streamlit as st
-            creds = st.secrets["db"]
+        import streamlit as st
+        # Check if secrets are actually configured
+        if "db" in st.secrets:
             connection = mysql.connector.connect(
-                host=creds["host"],
-                user=creds["user"],
-                password=creds["password"],
-                database=creds["database"],
-                port=int(creds["port"]),
+                host=st.secrets["db"]["host"],
+                user=st.secrets["db"]["user"],
+                password=st.secrets["db"]["password"],
+                database=st.secrets["db"]["database"],
+                port=int(st.secrets["db"]["port"]),
                 ssl_disabled=False
             )
-        except (KeyError, FileNotFoundError):
+        else:
             # Fallback to .env for local development
             from dotenv import load_dotenv
             load_dotenv()
