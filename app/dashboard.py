@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -602,7 +601,11 @@ def load_kpi(tool, start_date=None, end_date=None):
 
 def scalar(df, k, default=0):
     r = df[(df["kpi_name"]==k) & (df["kpi_dimension"].isna()|(df["kpi_dimension"]==""))]
-    return r["kpi_value"].iloc[0] if not r.empty else default
+    return r["kpi_value"].sum() if not r.empty else default
+
+def scalar_avg(df, k, default=0):
+    r = df[(df["kpi_name"]==k) & (df["kpi_dimension"].isna()|(df["kpi_dimension"]==""))]
+    return r["kpi_value"].mean() if not r.empty else default
 
 def breakdown(df, k, d):
     return df[(df["kpi_name"]==k) & (df["kpi_dimension"]==d)].copy()
@@ -868,9 +871,10 @@ def show_falcon(df):
 
     total    = int(scalar(df, "Total Alerts"))
     open_a   = int(scalar(df, "Open Alerts"))
-    mttr     = round(scalar(df, "MTTR (Hours)"), 2)
+    mttr     = round(scalar_avg(df, "MTTR (Hours)"), 2)
     high     = int(scalar(df, "High Severity Alerts"))
-    res_rate = round(scalar(df, "Resolution Rate") * 100, 1)
+    res_rate = round(scalar_avg(df, "Resolution Rate") * 100, 1)
+
 
     metric_row([
         ("Total Alerts",  total,           p),
@@ -916,7 +920,7 @@ def show_cyble(df):
                 "Threat Intel", p, "rgba(167,139,250,0.2)", p)
 
     total = int(scalar(df, "Total Alerts"))
-    ratio = round(scalar(df, "Open/Resolved Ratio"), 2)
+    ratio = round(scalar_avg(df, "Open/Resolved Ratio"), 2)
 
     metric_row([
         ("Total Alerts",        total, p),
@@ -1126,7 +1130,7 @@ def show_com(df):
                 "Vuln Mgmt", p, "rgba(45,212,191,0.2)", p)
 
     total       = int(scalar(df, "Total Vulnerabilities"))
-    avg_age     = round(scalar(df, "Average Vulnerability Age"), 1)
+    avg_age     = round(scalar_avg(df, "Average Vulnerability Age"), 1)
     reward      = int(scalar(df, "Total Reward Amount"))
     sla_df      = breakdown(df, "SLA Status", "sla_status")
     breached    = dim_sum(sla_df, "dimension_value", "breached")
