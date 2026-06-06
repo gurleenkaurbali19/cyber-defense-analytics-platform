@@ -2,6 +2,7 @@
 CREATE DATABASE security_dash;
 USE security_dash;
 
+
 #CREATING UPLOAD_MATER TABLE: The upload_master table stores metadata for every uploaded file and tracks it using a unique upload_id
 #to enable data lineage, duplicate detection, and pipeline status monitoring.
 CREATE TABLE upload_master (
@@ -175,9 +176,9 @@ delete from raw_siem;
 delete from raw_netskope;
 delete from raw_trend_vision;
 delete from upload_master;
-
+delete from kpi_master where upload_id=1 and upload_id=8;
 #Testing
-Select * from kpi_master;
+delete from upload_master where upload_id=1 and upload_id=8;
 SELECT * FROM upload_master;
 SELECT * FROM raw_falcon;
 select * from raw_cyble;
@@ -185,3 +186,17 @@ select * from kpi_master;
 select * from raw_siem;
 select * from raw_trend_vision;
 select * from raw_com_olho;
+
+SELECT * FROM upload_master;
+SELECT * FROM kpi_master;
+
+-- Step 1: delete KPIs
+DELETE FROM kpi_master WHERE tool_name = 'FALCON';
+
+-- Step 2: delete raw data
+DELETE FROM raw_falcon WHERE upload_id IN (
+    SELECT upload_id FROM upload_master WHERE tool_name = 'FALCON'
+);
+
+-- Step 3: delete upload record
+DELETE FROM upload_master WHERE tool_name = 'FALCON';
